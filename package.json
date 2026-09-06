@@ -1,6 +1,6 @@
 {
   "name": "pi-injection-guard",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Lean safety guards for pi: prompt-injection wrap, bash blocklist, path jail.",
   "scripts": {
     "test": "node test/bash-gate.test.mjs"

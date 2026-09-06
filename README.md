@@ -36,6 +36,8 @@ pi install git:github.com/drg407/pi-injection-guard
 - `PI_INJECTION_GUARD_TOOLS=tool1,tool2` — override the default list of tools whose output gets wrapped by injection-guard.
 - pi settings can filter individual extensions, allowing you to enable or disable any of the three guards independently.
 
+By default, injection-guard wraps output from tools named: `web_search`, `web_fetch`, `webSearch`, `webFetch`, `fetch`, `fetch_page`, `read`. Override with the `PI_INJECTION_GUARD_TOOLS` env var (comma-separated).
+
 ## Security disclaimer
 
 These guards are defense-in-depth, not a security boundary. bash-gate blocks common destructive patterns but a determined agent can bypass any regex. path-jail resolves symlinks but cannot prevent every escape (e.g. hardlinks, race conditions). injection-guard reduces prompt-injection risk from untrusted tool output but is not a complete defense. Do not rely on these as your only protection — use OS-level sandboxing (containers, unprivileged users) for real isolation.

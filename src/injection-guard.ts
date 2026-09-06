@@ -1,7 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { randomBytes } from "node:crypto";
 
-const DEFAULT_WRAP_TOOLS = ["web_search", "web_fetch", "webSearch", "webFetch", "fetch", "read"];
+const DEFAULT_WRAP_TOOLS = ["web_search", "web_fetch", "webSearch", "webFetch", "fetch", "fetch_page", "read"];
 
 const envList = process.env.PI_INJECTION_GUARD_TOOLS;
 const WRAP_TOOLS = new Set(
