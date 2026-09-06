@@ -40,6 +40,17 @@ pi install git:github.com/drg407/pi-injection-guard
 
 These guards are defense-in-depth, not a security boundary. bash-gate blocks common destructive patterns but a determined agent can bypass any regex. path-jail resolves symlinks but cannot prevent every escape (e.g. hardlinks, race conditions). injection-guard reduces prompt-injection risk from untrusted tool output but is not a complete defense. Do not rely on these as your only protection — use OS-level sandboxing (containers, unprivileged users) for real isolation.
 
+## Known limitations
+
+`bash-gate` is a regex tier and cannot see through these constructs. They are documented, not defects:
+
+- **Commands inside string arguments**: `bash -c 'rm -rf /'` — the dangerous command lives inside a quoted argument, not at command position.
+- **`sudo` with options**: `sudo -E rm -rf /` — only `sudo <command>` (no intervening flags) is anchored.
+- **Interpreter indirection via `env`**: `curl X | /usr/bin/env bash` — the shell name is not immediately after the pipe.
+- **`find -execdir rm`**: only `-exec rm` is matched.
+
+If any of these matter for your threat model, run pi under OS-level sandboxing (containers, unprivileged users, seccomp).
+
 ## License
 
 MIT
