@@ -1,6 +1,6 @@
 # pi-injection-guard
 
-Lean safety guards for pi: prompt-injection wrap, bash blocklist, path jail.
+Lean safety guards for pi: prompt-injection wrap, bash blocklist, path jail, memory write guard.
 
 ## What it does
 
@@ -25,6 +25,18 @@ Currently blocked patterns:
 
 Prevents `write` and `edit` tool calls from targeting paths outside the current working directory. Resolves symlinks via `realpath` to prevent escape through link chains. Catches both absolute paths and relative paths that resolve outside the jail.
 
+### memory-guard
+
+Intercepts writes to `pi-memory` (jayzeng/pi-memory) tools — `memory_write` and `scratchpad` add — before content is persisted. Scans for prompt-injection markers (`ignore previous instructions`, role-tag forgery, external-data-tag forgery, prompt-exfiltration patterns, etc.). When a pattern matches:
+
+- Interactive session: prompts the user to allow or deny, denying by default.
+- Non-interactive (no UI): blocks by default.
+- Set `PI_INJECTION_GUARD_MEMORY_STRICT=1` to always block without prompting.
+
+**Why this exists:** `injection-guard` wraps tool_result output in nonce-delimited untrusted tags, but the wrap does not survive when the model summarizes the wrapped content into a `memory_write` call. The summary lands in `MEMORY.md` as trusted first-class context loaded into every future session. `memory-guard` catches that amplification path at the write.
+
+Like the other guards, this is defense-in-depth — a determined author can rephrase around any regex.
+
 ## Install
 
 ```
@@ -34,7 +46,8 @@ pi install git:github.com/drg407/pi-injection-guard
 ## Configuration
 
 - `PI_INJECTION_GUARD_TOOLS=tool1,tool2` — override the default list of tools whose output gets wrapped by injection-guard.
-- pi settings can filter individual extensions, allowing you to enable or disable any of the three guards independently.
+- `PI_INJECTION_GUARD_MEMORY_STRICT=1` — make memory-guard always block on a pattern match without prompting.
+- pi settings can filter individual extensions, allowing you to enable or disable any of the four guards independently.
 
 By default, injection-guard wraps output from tools named: `web_search`, `web_fetch`, `webSearch`, `webFetch`, `fetch`, `fetch_page`, `read`. Override with the `PI_INJECTION_GUARD_TOOLS` env var (comma-separated).
 
