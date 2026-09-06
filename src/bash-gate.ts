@@ -4,12 +4,13 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const RULES: Array<{ pattern: RegExp; label: string }> = [
-  { pattern: /\brm\s+[^|;&]*-[a-zA-Z]*[rRfF]/, label: "rm -r/-f" },
+  { pattern: /\brm\b[^|;&]*(-[a-zA-Z]*[rRfF]|--recursive|--force|--no-preserve-root)/, label: "rm recursive/force" },
   { pattern: /\brmdir\b/, label: "rmdir" },
   { pattern: /\bunlink\b/, label: "unlink" },
   { pattern: /\bshred\b/, label: "shred" },
+  { pattern: /\bfind\b[^|;&]*(-delete\b|-exec\s+rm\b)/, label: "find -delete / find -exec rm" },
   { pattern: /\bdd\b[^|;&]*\bof=/, label: "dd of=" },
-  { pattern: /\bgit\s+push\b[^|;&]*(--force|-f\b)/, label: "git push --force" },
+  { pattern: /\bgit\s+push\b[^|;&]*(--force\b|--force-with-lease\b|(?<!\S)-f(?!\S))/, label: "git push --force" },
   { pattern: /\b(curl|wget)\b[^|]*\|\s*(sh|bash|zsh)\b/, label: "curl|wget piped to shell" },
   { pattern: />\s*\/dev\/sd[a-z]/, label: "write to raw disk" },
   { pattern: /\bmkfs(\.[a-z0-9]+)?\b/, label: "mkfs" },
