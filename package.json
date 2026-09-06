@@ -1,0 +1,19 @@
+{
+  "name": "pi-injection-guard",
+  "version": "0.1.0",
+  "description": "Lean safety guards for pi: prompt-injection wrap, bash blocklist, path jail.",
+  "keywords": ["pi-package", "pi", "pi-extension", "security", "prompt-injection"],
+  "author": "David Guevara",
+  "license": "MIT",
+  "type": "module",
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": ">=0.79.0"
+  },
+  "pi": {
+    "extensions": [
+      "./src/injection-guard.ts",
+      "./src/bash-gate.ts",
+      "./src/path-jail.ts"
+    ]
+  }
+}
