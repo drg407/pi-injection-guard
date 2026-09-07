@@ -10,17 +10,19 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 const PATTERNS: Array<{ pattern: RegExp; label: string }> = [
-  { pattern: /ignore\s+(all\s+)?(previous|above|prior|earlier)\s+(instructions?|prompts?|rules?|context|messages?)/i, label: "ignore-previous" },
-  { pattern: /disregard\s+(your|the|all|any)\s+(instructions?|prompts?|rules?|guidance)/i, label: "disregard-instructions" },
-  { pattern: /forget\s+(everything|all|your\s+instructions?|previous)/i, label: "forget-everything" },
+  { pattern: /ignore\s+(all\s+)?(previous|above|prior|earlier|the|that|this|any)\s+(system\s+)?(instructions?|prompts?|rules?|context|messages?|guidance)/i, label: "ignore-previous" },
+  { pattern: /(disregard|do\s+not\s+follow|don't\s+follow|stop\s+following|cease\s+following)\s+(your|the|all|any)?\s*(system\s+)?(instructions?|prompts?|rules?|guidance)/i, label: "disregard-instructions" },
+  { pattern: /forget\s+(everything|all|previous|(?:your|the)\s+(instructions?|prompt|rules?|guidelines?|constraints?))/i, label: "forget-everything" },
   { pattern: /you\s+are\s+now\s+(?:a|an|the)\s+[a-z]/i, label: "role-reassignment" },
-  { pattern: /new\s+(system\s+)?(instructions?|prompt|rules?)\s*[:\-]/i, label: "new-instructions" },
+  { pattern: /(new|updated|revised|modified|latest)\s+(system\s+)?(instructions?|prompt|rules?)\s*[:\-]/i, label: "new-instructions" },
   { pattern: /<\|?\s*(im_start|start_of_turn)\s*\|?>\s*system/i, label: "role-marker-forgery" },
   { pattern: /<\|?\s*system\s*\|?>/i, label: "system-tag" },
   { pattern: /\[\s*system\s*\]/i, label: "system-bracket" },
   { pattern: /\[\s*INST\s*\]/i, label: "llama-inst-marker" },
   { pattern: /<\/?EXTERNAL_DATA_[a-f0-9]+>/i, label: "external-data-tag-forgery" },
   { pattern: /(print|reveal|show|output|repeat)\s+(your|the|full)\s+(system\s+)?(prompt|instructions?)/i, label: "prompt-exfiltration" },
+  { pattern: /you\s+are\s+(no\s+longer|not)\s+(bound|restricted|limited|constrained|required|obligated)/i, label: "role-liberation" },
+  { pattern: /you\s+are\s+(?:now\s+)?(?:a|an|the)?\s*(DAN|unrestricted|uncensored|jailbroken|unfiltered)/i, label: "named-jailbreak" },
 ];
 
 const STRICT = process.env.PI_INJECTION_GUARD_MEMORY_STRICT === "1";

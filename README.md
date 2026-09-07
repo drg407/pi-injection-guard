@@ -27,7 +27,7 @@ Prevents `write` and `edit` tool calls from targeting paths outside the current 
 
 ### memory-guard
 
-Intercepts writes to `pi-memory` (jayzeng/pi-memory) tools — `memory_write` and `scratchpad` add — before content is persisted. Scans for prompt-injection markers (`ignore previous instructions`, role-tag forgery, external-data-tag forgery, prompt-exfiltration patterns, etc.). When a pattern matches:
+Intercepts writes to `pi-memory` (jayzeng/pi-memory) tools — `memory_write` and `scratchpad` add — before content is persisted. Scans for prompt-injection markers (`ignore previous/the instructions`, "do not follow the rules", "forget your instructions", role reassignment and liberation, named jailbreak roles like DAN, role-tag forgery, external-data-tag forgery, prompt-exfiltration patterns, etc.). When a pattern matches:
 
 - Interactive session: prompts the user to allow or deny, denying by default.
 - Non-interactive (no UI): blocks by default.
