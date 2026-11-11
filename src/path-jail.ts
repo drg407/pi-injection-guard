@@ -1,23 +1,33 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { existsSync, realpathSync } from "node:fs";
-import { dirname, isAbsolute, resolve, sep } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 const GUARDED = new Set(["write", "edit"]);
-
-function realpathOfExistingAncestor(target: string): string {
-  let current = target;
-  while (!existsSync(current)) {
-    const parent = dirname(current);
-    if (parent === current) return realpathSync(parent);
-    current = parent;
-  }
-  return realpathSync(current);
-}
 
 function isInside(child: string, parent: string): boolean {
   if (child === parent) return true;
   const p = parent.endsWith(sep) ? parent : parent + sep;
   return child.startsWith(p);
+}
+
+/** Where a write to `absolute` really lands: the realpath of its deepest existing ancestor
+ *  (symlinks resolved, including an existing file symlink) + the not-yet-existing suffix. */
+export function canonicalTarget(absolute: string): string {
+  let current = absolute;
+  while (!existsSync(current)) {
+    const parent = dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  return resolve(realpathSync(current), relative(current, absolute));
+}
+
+/** True when a write to rawPath (relative to cwd) lands outside cwd. Judged ONLY on the
+ *  canonical target: a lexically-inside path that resolves outside through a symlink
+ *  (dir or file) escapes. Fix 2026-11-11 — the old check let lexical containment win. */
+export function jailEscapes(rawPath: string, cwd: string): boolean {
+  const absolute = isAbsolute(rawPath) ? rawPath : resolve(cwd, rawPath);
+  return !isInside(canonicalTarget(absolute), realpathSync(cwd));
 }
 
 /** Block reason with the sanctioned way to edit a file outside cwd. */
@@ -32,12 +42,9 @@ export default function (pi: ExtensionAPI) {
     const rawPath = (event.input as { path?: unknown }).path;
     if (typeof rawPath !== "string" || rawPath.length === 0) return undefined;
 
+    if (!jailEscapes(rawPath, ctx.cwd)) return undefined;
     const absolute = isAbsolute(rawPath) ? rawPath : resolve(ctx.cwd, rawPath);
-    const resolvedAncestor = realpathOfExistingAncestor(absolute);
-    const jail = realpathSync(ctx.cwd);
-
-    const escapes = !isInside(resolvedAncestor, jail) && !isInside(absolute, jail);
-    if (!escapes) return undefined;
+    const resolvedAncestor = canonicalTarget(absolute);
 
     const reason = pathJailReason(absolute, resolvedAncestor);
     if (ctx.hasUI) ctx.ui.notify(reason, "warning");
