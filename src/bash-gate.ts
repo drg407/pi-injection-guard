@@ -16,6 +16,17 @@ const RULES: Array<{ pattern: RegExp; label: string }> = [
   { pattern: /(?:^\s*|[;&|(]\s*|\{\s+)(?:sudo\s+)?mkfs(\.[a-z0-9]+)?\b/, label: "mkfs" },
 ];
 
+const DELETE_LABELS = new Set(["rm recursive/force", "rmdir", "unlink", "find -delete / find -exec rm"]);
+
+/** Block reason with the next step, so the model's retry is the right command. */
+export function bashGateReason(label: string): string {
+  const base = `pi-injection-guard bash-gate blocked pattern: ${label}`;
+  if (DELETE_LABELS.has(label)) {
+    return `${base}. To delete files or directories use \`trash <path>\` (macOS /usr/bin/trash: moves to Trash, takes files and dirs, not gated) — do not retry rm/rmdir/unlink.`;
+  }
+  return `${base}. This is a destructive command: ask the user to run it or approve it explicitly — do not try to work around the gate.`;
+}
+
 export default function (pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx) => {
     if (event.toolName !== "bash") return undefined;
@@ -23,7 +34,7 @@ export default function (pi: ExtensionAPI) {
     const hit = RULES.find((r) => r.pattern.test(command));
     if (!hit) return undefined;
 
-    const reason = `pi-injection-guard bash-gate blocked pattern: ${hit.label}`;
+    const reason = bashGateReason(hit.label);
     if (ctx.hasUI) ctx.ui.notify(reason, "warning");
     return { block: true, reason };
   });

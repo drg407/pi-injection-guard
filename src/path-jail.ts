@@ -20,6 +20,11 @@ function isInside(child: string, parent: string): boolean {
   return child.startsWith(p);
 }
 
+/** Block reason with the sanctioned way to edit a file outside cwd. */
+export function pathJailReason(absolute: string, resolvedAncestor: string): string {
+  return `pi-injection-guard path-jail blocked write outside cwd: ${absolute} (resolved: ${resolvedAncestor}). edit/write only work inside the session cwd. If this edit is intended, use bash + python3: read the file, assert text.count(anchor) == 1, replace, write it back, then grep/parse the result — do not retry edit/write on this path.`;
+}
+
 export default function (pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx) => {
     if (!GUARDED.has(event.toolName)) return undefined;
@@ -34,7 +39,7 @@ export default function (pi: ExtensionAPI) {
     const escapes = !isInside(resolvedAncestor, jail) && !isInside(absolute, jail);
     if (!escapes) return undefined;
 
-    const reason = `pi-injection-guard path-jail blocked write outside cwd: ${absolute} (resolved: ${resolvedAncestor})`;
+    const reason = pathJailReason(absolute, resolvedAncestor);
     if (ctx.hasUI) ctx.ui.notify(reason, "warning");
     return { block: true, reason };
   });
